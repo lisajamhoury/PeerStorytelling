@@ -1,0 +1,82 @@
+<!-- to run: node server.js
+http://localhost:8085/index.html -->
+
+<html>
+	<head>
+		<title>Peer Storytelling</title>
+		<script src="peer.min.js"></script>
+		<script src="/socket.io/socket.io.js"></script>
+		<script type="text/javascript">
+			var socket = io();
+			var mypeerid = null;
+			var myname = null;
+			var peer = null;
+			var connection = null;
+
+			socket.on('connect', function() {
+				console.log("Connected");
+			});
+			
+			var init = function() {
+				peer = new Peer({host: 'liveweb.itp.io', port: 9001, path: '/'});
+				
+				peer.on('open', function(id) {
+				  console.log('My peer ID is: ' + id);
+				  mypeerid = id;
+				});
+				
+				peer.on('connection', function(conn) {
+					connection = conn;
+					connection.on('open', function() {
+						document.getElementById('chatlog').innerHTML += "Connection Established";
+					});
+					connection.on('data', function(data) {
+						document.getElementById('chatlog').innerHTML += data;
+					});
+				});
+			};	
+			
+			// var sendmessage = function() {
+			// 	connection.send(document.getElementById('chat').value);
+			// 	document.getElementById('chat').value = "";
+			// };
+
+			// var placecall = function() {
+			// 	connection = peer.connect(document.getElementById('other_peer_id').value);
+			// 	connection.on('open', function(data) {
+			// 		document.getElementById('chatlog').innerHTML += "Connection Established";
+			// 	});
+
+			// 	connection.on('data', function(data) {
+			// 		document.getElementById('chatlog').innerHTML += data;
+			// 	});
+			// };	
+
+			var submitName = function() {
+				myname = document.getElementById('user-name-input').value.toLowerCase();
+				console.log(myname);
+				console.log(mypeerid);
+				socket.emit('newuserinfo', myname, mypeerid);
+			}
+
+
+		</script>
+	</head>
+	
+	<body onload="init()">
+		<div id="user-definition" >
+			<input type="username" id="user-name-input" placeholder="Enter Your Username">
+			<input type="button" value="Submit" onclick="submitName()"><br />
+		</div>
+		<div id="story" >
+			<p>The story goes here</p>
+		</div>
+		<div id="caller-controls" >
+			<input type="text" id="other_peer_id" value="PeerID to Call">
+			<input type="button" value="Call" onclick="placecall()"><br />
+			<input type="text" id="chat">
+			<input type="button" value="Send" onclick="sendmessage()"><br />
+		</div>
+		<div id="user-list" >userlist</div>
+	</body>
+</html>
