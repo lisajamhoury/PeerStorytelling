@@ -39,6 +39,8 @@ var users = [];
 io.sockets.on('connection', 
 	function (socket) {
 
+
+
 	// socket.on('newimage', function (image, id, name) {
 	// 	var img = image;
 	// 	var imgname = 'map-' + id + '.png';
@@ -72,6 +74,25 @@ io.sockets.on('connection',
 			users.push(newuser);
 		}
 		console.log(users);
+
+	});
+
+	socket.on('getpeerid', function(name) {
+		console.log('getid');
+		var peerId = null;
+		var isExistingUser = false;
+		for (var j = 0; j < users.length; j++) {
+			if (users[j].name == name) {
+				console.log('found peer id');
+				peerId = users[j].id;
+				isExistingUser = true;
+			} 
+		}
+		if (isExistingUser == true) {
+			socket.emit('returnpeerid', peerId);
+		} else {
+			socket.emit('nopeerid', {});
+		}
 
 	});
 

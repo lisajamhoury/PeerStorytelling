@@ -16,8 +16,21 @@ http://localhost:8085/index.html -->
 			socket.on('connect', function() {
 				console.log("Connected");
 			});
+
+			socket.on('returnpeerid', function(peerIDtoCall) {
+				placecall(peerIDtoCall);
+			});
 			
 			var init = function() {
+
+				document.getElementById('call-button').addEventListener('click', function() {
+					console.log('got it');
+					var nameToCall = document.getElementById('other_peer_id').value.toLowerCase();
+					console.log(nameToCall);
+					socket.emit('getpeerid', nameToCall);
+					document.getElementById('other_peer_id').value = '';
+				});
+
 				peer = new Peer({host: 'liveweb.itp.io', port: 9001, path: '/'});
 				
 				peer.on('open', function(id) {
@@ -41,11 +54,14 @@ http://localhost:8085/index.html -->
 			// 	document.getElementById('chat').value = "";
 			// };
 
-			// var placecall = function() {
-			// 	connection = peer.connect(document.getElementById('other_peer_id').value);
-			// 	connection.on('open', function(data) {
-			// 		document.getElementById('chatlog').innerHTML += "Connection Established";
-			// 	});
+			var placecall = function(peerIDtoCall) {
+				connection = peer.connect(peerIDtoCall);
+				connection.on('open', function(data) {
+					console.log('callmade');
+					console.log(connection);
+					// document.getElementById('chatlog').innerHTML += "Connection Established";
+				});
+			}
 
 			// 	connection.on('data', function(data) {
 			// 		document.getElementById('chatlog').innerHTML += data;
@@ -59,7 +75,7 @@ http://localhost:8085/index.html -->
 				socket.emit('newuserinfo', myname, mypeerid);
 			}
 
-
+			window.addEventListener('load', init);
 		</script>
 	</head>
 	
@@ -72,8 +88,8 @@ http://localhost:8085/index.html -->
 			<p>The story goes here</p>
 		</div>
 		<div id="caller-controls" >
-			<input type="text" id="other_peer_id" value="PeerID to Call">
-			<input type="button" value="Call" onclick="placecall()"><br />
+			<input type="text" id="other_peer_id" placeholder="PeerID to Call">
+			<input type="button" id="call-button" value="Call"><br />
 			<input type="text" id="chat">
 			<input type="button" value="Send" onclick="sendmessage()"><br />
 		</div>
