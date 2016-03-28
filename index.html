@@ -6,6 +6,7 @@ http://localhost:8085/index.html -->
 		<title>Peer Storytelling</title>
 		<script src="peer.min.js"></script>
 		<script src="/socket.io/socket.io.js"></script>
+		<link rel="stylesheet" type="text/css" href="style.css">
 
 		<script type="text/javascript">
 
@@ -21,8 +22,8 @@ http://localhost:8085/index.html -->
 			});
 
 
-			socket.on('returnpeerid', function(peerIDtoCall) {
-				placecall(peerIDtoCall);
+			socket.on('returncallinfo', function(usertocall) {
+				placecall(usertocall);
 			});
 			
 			var init = function() {
@@ -31,7 +32,7 @@ http://localhost:8085/index.html -->
 					console.log('got it');
 					var nameToCall = document.getElementById('other_peer_id').value.toLowerCase();
 					console.log(nameToCall);
-					socket.emit('getpeerid', nameToCall);
+					socket.emit('getcallinfo', nameToCall);
 					document.getElementById('other_peer_id').value = '';
 				});
 
@@ -57,16 +58,25 @@ http://localhost:8085/index.html -->
 			};	
 
 			//broadcast username to user list div
-			socket.on('addName', function(name){
-				console.log(name);
-				document.getElementById('user-list').innerHTML+= "<br>" + name;
+			socket.on('addName', function(newuser){
+				console.log(newuser.name);
+				var mainDiv = document.getElementById('user-list');
+				var newUser = document.createElement('div');
+				newUser.setAttribute("id", newuser.id);
+				newUser.setAttribute("class", "added-user-name");
+				newUser.innerHTML = newuser.name;
+				mainDiv.appendChild(newUser);
 			});
 			
 			//broadcast story to story div
 			socket.on('addStory', function(data){
 				console.log(data);
 				document.getElementById('story').innerHTML += "<br>" + data;
-			})
+ 	 		});
+
+ 	 		socket.on('markuserused', function(useduser) {
+ 	 			document.getElementById(useduser.id).setAttribute("class", "used-name");
+ 	 		});
 
 
 			var submitName = function() {
@@ -75,6 +85,11 @@ http://localhost:8085/index.html -->
 				console.log(mypeerid);
 				socket.emit('newuserinfo', myname, mypeerid);
 				appendUserList(myname);
+
+				if(myname == "yurika") {
+					document.getElementById('other_peer_id').style.visibility = 'visible';
+					document.getElementById('call-button').style.visibility = 'visible';
+				}
 				
 			};
 			//funciton that adds the name to list
@@ -84,9 +99,12 @@ http://localhost:8085/index.html -->
 
 			//IF CONNECTION IS TRUE DO THESE
 			//other person's data
-			var placecall = function(peerIDtoCall) {
+			var placecall = function(usertocall) {
 
-				connection = peer.connect(peerIDtoCall);
+				connection = peer.connect(usertocall.id);
+				socket.emit('markused', usertocall);
+				
+
 				//when you call another person, you can nolonger edit the text
 
 				connection.on('open', function(data) {
@@ -138,10 +156,10 @@ http://localhost:8085/index.html -->
 			<p>The story goes here</p>
 		</div>
 		<div id="caller-controls" >
-			<input type="text" id="other_peer_id" value="PeerID to Call">
+			<input type="text" id="other_peer_id" placeholder="PeerID to Call">
 			<input type="button" id="call-button" value="Call"><br /><br />
-			<input type="text" id="chat" style="visibility: hidden">
-			<input type="button" id="chatbutton" style="visibility: hidden" value="Send" onclick="sendmessage()"><br />
+			<input type="text" id="chat">
+			<input type="button" id="chatbutton" value="Send" onclick="sendmessage()"><br />
 		</div>
 		<div id="user-list" >userlist</div>
 	</body>

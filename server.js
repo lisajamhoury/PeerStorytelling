@@ -69,37 +69,41 @@ io.sockets.on('connection',
 		}
 
 		if (isnewuser == true) {
-			newuser = {name: name, id: id};
+			newuser = {name: name, id: id, called: 'no'};
 			users.push(newuser);
+			io.sockets.emit('addName', newuser);
 		}
 		console.log(users);
 
 	});
 
 
-	socket.on('getpeerid', function(name) {
-		console.log('getid');
-		var peerId = null;
+	socket.on('getcallinfo', function(name) {
+		console.log('getinfo');
+		var userToCall = null;
 		var isExistingUser = false;
 		for (var j = 0; j < users.length; j++) {
 			if (users[j].name == name) {
 				console.log('found peer id');
-				peerId = users[j].id;
+				users[j].called = 'yes';
+				userToCall = users[j];
 				isExistingUser = true;
 			} 
 		}
 		if (isExistingUser == true) {
-			socket.emit('returnpeerid', peerId);
+			socket.emit('returncallinfo', userToCall);
+
+			console.log(users);
+
 		} else {
-			socket.emit('nopeerid', {});
+			socket.emit('usernotfound', {});
 		}
 	});
 
-	//add to user list
-	socket.on('addName', function(name){
-		console.log('added name to list');
-		io.sockets.emit('addName',name);
+	socket.on('markused', function(useduser) {
+		io.sockets.emit('markuserused', useduser);
 	});
+
 
 	//collective story
 	socket.on('addStory', function(data){

@@ -1,0 +1,7 @@
+.used-name {
+	color: #7a7a7a;
+}
+
+#other_peer_id, #call-button, #chat, #chatbutton {
+	visibility: hidden;
+}
