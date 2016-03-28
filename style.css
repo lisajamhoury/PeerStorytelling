@@ -1,7 +1,68 @@
-.used-name {
-	color: #7a7a7a;
+body	{
+	background-color: #eae1d7;
+	font-family: 'Open Sans', sans-serif;
 }
 
-#other_peer_id, #call-button, #chat, #chatbutton {
-	visibility: hidden;
+h1 {
+	font-size: 1.5em;
+	margin-top: 30px;
+}
+
+input, input[type="button"]	{
+	height: 30px;
+	width: 150px;
+	float: left;
+}
+
+input[type="button"] {
+	color: #fff;
+  background-color: #000;
+  border: none;
+
+}
+
+#wrapper {
+	width: 1000px;
+}
+
+#maincontent {
+	width: 700px;
+	margin: 50px auto;
+	/*background-color: #fff;*/
+	padding: 20px;
+}
+
+.used-name {
+	color: #e4e4e4;
+	font-style: italic;
+}
+
+#other_peer_id, #call-button, #chat, #chatbutton, #story-prompt, #call-prompt {
+	display: none;
+}
+
+#story-prompt, #call-prompt {
+	background-color: #00ff00;
+}
+
+
+#main-text {
+	width: 400px;
+
+}
+
+#user-list {
+	width: 200px;
+}
+
+#main-text, #user-list {
+	float: left;
+	background-color: #fff;
+	height: 500px;
+	margin-bottom: 20px;
+	padding: 20px;
+}
+
+#story {
+	margin-bottom: 40px;
 }
