@@ -4,55 +4,56 @@
 
 var http = require('http');
 var fs = require('fs');
-var sys = require('sys');
-var url =  require('url');
-var io = require('socket.io').listen(httpServer);
+//var sys = require('util');
+var path = require('path');
+//var url =  require('url');
 
-function requestHandler(req, res) {
-	var parsedUrl = url.parse(req.url);
-	var path = parsedUrl.pathname;
-	if (path == "/") {
-		path = "index.html";
-	}
-	fs.readFile(__dirname + path,
-		function (err, fileContents) {
-			if (err) {
-				res.writeHead(500);
-				return res.end('Error loading ' + req.url);
-			}
-			res.writeHead(200);
-			res.end(fileContents);
-  		}
-  	);	
-	// console.log("Got a request " + req.url);
-}
-
+var users = [];
 
 var httpServer = http.createServer(requestHandler);
 httpServer.listen(8085);
 
+function requestHandler(req, res) {
+	 // What did we request?
+  var pathname = req.url;
+
+  // If blank let's ask for index.html
+  if (pathname == '/') {
+    pathname = '/index.html';
+  }
+
+  // Ok what's our file extension
+  var ext = path.extname(pathname);
+
+  // Map extension to file type
+  var typeExt = {
+    '.html': 'text/html',
+    '.js':   'text/javascript',
+    '.css':  'text/css'
+  };
+
+  // What is it?  Default to plain text
+  var contentType = typeExt[ext] || 'text/plain';
+
+  // Now read and write back the file with the appropriate content type
+  fs.readFile(__dirname + pathname,
+    function (err, data) {
+      if (err) {
+        res.writeHead(500);
+        return res.end('Error loading ' + pathname);
+      }
+      // Dynamically setting content type
+      res.writeHead(200,{ 'Content-Type': contentType });
+      res.end(data);
+    }
+    );
+}
+
 
 var io = require('socket.io').listen(httpServer);
 
-var users = [];
-
 io.sockets.on('connection', 
 	function (socket) {
-
-	// socket.on('newimage', function (image, id, name) {
-	// 	var img = image;
-	// 	var imgname = 'map-' + id + '.png';
-	// 	// strip off the data: url prefix to get just the base64-encoded bytes
-	// 	var data = img.replace(/^data:image\/\w+;base64,/, "");
-	// 	var buf = new Buffer(data, 'base64');
-	// 	var tstamp = Date.now();
-	// 	fs.writeFile('map-images/' + imgname, buf);
-	// 	var saveimage = { _id: id, imgname: imgname, type: 'mapimage', mapname: name, timestamp: tstamp };
-	// 	db.insert(saveimage, function (err, newImage) {
-	// 		console.log("err: " + err);
-	// 		// console.log("newDoc: " + newImage);
-	// 	});
-
 	
 	socket.on('newuserinfo', function (name, id) {
 		var isnewuser = true;
@@ -73,6 +74,18 @@ io.sockets.on('connection',
 		}
 		console.log(users);
 
+	});
+
+	//add to user list
+	socket.on('addName', function(name){
+		console.log('added name to list');
+		io.sockets.emit('addName',name);
+	});
+
+	//collective story
+	socket.on('addStory', function(data){
+		console.log('storyline continued');
+		io.sockets.emit('addStory',data);
 	});
 
 });

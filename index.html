@@ -6,16 +6,20 @@ http://localhost:8085/index.html -->
 		<title>Peer Storytelling</title>
 		<script src="peer.min.js"></script>
 		<script src="/socket.io/socket.io.js"></script>
+
 		<script type="text/javascript">
-			var socket = io();
+
+			var socket = io.connect();
 			var mypeerid = null;
 			var myname = null;
 			var peer = null;
 			var connection = null;
+		
 
 			socket.on('connect', function() {
 				console.log("Connected");
 			});
+
 			
 			var init = function() {
 				peer = new Peer({host: 'liveweb.itp.io', port: 9001, path: '/'});
@@ -28,35 +32,81 @@ http://localhost:8085/index.html -->
 				peer.on('connection', function(conn) {
 					connection = conn;
 					connection.on('open', function() {
-						document.getElementById('chatlog').innerHTML += "Connection Established";
+						//when someone calls you, the story input box becomes visible
+						document.getElementById('chat').style.visibility = 'visible';
+						document.getElementById('chatbutton').style.visibility = 'visible';
+
 					});
 					connection.on('data', function(data) {
-						document.getElementById('chatlog').innerHTML += data;
+						document.getElementById('story').innerHTML += data;
 					});
 				});
 			};	
+
+			//broadcast username to user list div
+			socket.on('addName', function(name){
+				console.log(name);
+				document.getElementById('user-list').innerHTML+= "<br>" + name;
+			});
 			
-			// var sendmessage = function() {
-			// 	connection.send(document.getElementById('chat').value);
-			// 	document.getElementById('chat').value = "";
-			// };
+			//broadcast story to story div
+			socket.on('addStory', function(data){
+				console.log(data);
+				document.getElementById('story').innerHTML += "<br>" + data;
+			})
 
-			// var placecall = function() {
-			// 	connection = peer.connect(document.getElementById('other_peer_id').value);
-			// 	connection.on('open', function(data) {
-			// 		document.getElementById('chatlog').innerHTML += "Connection Established";
-			// 	});
-
-			// 	connection.on('data', function(data) {
-			// 		document.getElementById('chatlog').innerHTML += data;
-			// 	});
-			// };	
 
 			var submitName = function() {
 				myname = document.getElementById('user-name-input').value.toLowerCase();
 				console.log(myname);
 				console.log(mypeerid);
 				socket.emit('newuserinfo', myname, mypeerid);
+				appendUserList(myname);
+				
+			};
+			//funciton that adds the name to list
+			var appendUserList = function(name){
+				socket.emit('addName', name);
+			};
+
+			//IF CONNECTION IS TRUE DO THESE
+			//other person's data
+			var placecall = function() {
+				var id
+				connection = peer.connect(document.getElementById('other_peer_id').value);
+				//when you call another person, you can nolonger edit the text
+
+				connection.on('open', function(data) {
+					document.getElementById('chat').style.visibility = 'hidden';
+					document.getElementById('chatbutton').style.visibility = 'hidden';
+
+					document.getElementById('other_peer_id').style.visibility = 'hidden';
+					document.getElementById('callbutton').style.visibility = 'hidden';
+				});
+
+				connection.on('data', function(data) {
+					document.getElementById('story').innerHTML += data;
+				});
+			};	
+
+			
+			var sendmessage = function(){
+				//connection.send(document.getElementById('chat').value);
+				console.log("sending message");
+				var storyinput = document.getElementById('chat').value;
+				appendStory(storyinput);
+				document.getElementById('chat').value = "";
+
+				//when you send the story, then show the call button
+
+				document.getElementById('other_peer_id').style.visibility = 'visible';
+				document.getElementById('callbutton').style.visibility = 'visible';
+			}
+
+			var appendStory = function(d){
+				socket.emit('addStory', d);
+				document.getElementById('chat').style.visibility = 'hidden';
+				document.getElementById('chatbutton').style.visibility = 'hidden';
 			}
 
 
@@ -66,16 +116,17 @@ http://localhost:8085/index.html -->
 	<body onload="init()">
 		<div id="user-definition" >
 			<input type="username" id="user-name-input" placeholder="Enter Your Username">
-			<input type="button" value="Submit" onclick="submitName()"><br />
+			<input type="button" value="Submit" onclick="submitName()">
+			<br/>
 		</div>
 		<div id="story" >
 			<p>The story goes here</p>
 		</div>
 		<div id="caller-controls" >
 			<input type="text" id="other_peer_id" value="PeerID to Call">
-			<input type="button" value="Call" onclick="placecall()"><br />
-			<input type="text" id="chat">
-			<input type="button" value="Send" onclick="sendmessage()"><br />
+			<input type="button" id="callbutton" value="Call" onclick="placecall()"><br />
+			<input type="text" id="chat" style="visibility: hidden">
+			<input type="button" id="chatbutton" style="visibility: hidden" value="Send" onclick="sendmessage()"><br />
 		</div>
 		<div id="user-list" >userlist</div>
 	</body>
